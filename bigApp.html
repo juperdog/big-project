@@ -1,0 +1,50 @@
+<html>
+   <head>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+      <script src="config.js"></script>
+      <title>AngularJS First Application</title>
+   </head>
+   <body ng-app = "myapp">
+      <h1>Sample Application</h1>
+      <div ng-controller = "HelloController" >
+        <b>ENV : </b>
+        <select ng-options="envItem for envItem in envList" ng-model="env"></select>
+        <table border="1">
+          <tr ng-repeat=" (moduleKey, module) in result track by $index">
+            <td><h3>{{ moduleKey }}</h3></td>
+            <td>
+              <span ng-repeat=" (key, value) in module track by $index">
+                <b>{{key}}</b> = {{value}}</br>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <script>
+         var app = angular.module("myapp", []);
+         app.controller("HelloController", function($scope, $http) {
+            $scope.result = {};
+            $scope.envList = [];
+            angular.forEach(configs, function(env, envKey) {
+              $scope.envList.push(envKey);
+            });
+            $scope.env = $scope.envList[0];
+
+            //do
+            $http.defaults.headers.post["Content-Type"] = "text/plain";
+            $scope.$watch('env', function(newValue, oldValue){
+              $scope.result = {};
+              angular.forEach(configs[$scope.env], function(module, moduleKey) {
+                $http.post('http://localhost:8888/', module).then(function(res){
+                  console.log(res.data);
+                  $scope.result[moduleKey] = res.data;
+                }).catch(function(res){
+                  console.log(res);
+                });
+              });
+            });
+
+         });
+      </script>
+   </body>
+</html>
